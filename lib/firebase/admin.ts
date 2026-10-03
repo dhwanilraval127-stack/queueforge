@@ -1,18 +1,29 @@
 import * as admin from 'firebase-admin';
 
-// Helper to sanitize private key (handles quotes, literal newlines, and escaped \n)
+// Helper that safely parses private keys regardless of how Vercel stores them
 function formatPrivateKey(key?: string): string | undefined {
   if (!key) return undefined;
-  return key
-    .replace(/^['"]|['"]$/g, '') // remove surrounding quotes
-    .replace(/\\n/g, '\n');      // convert escaped \n into actual newlines
+
+  let sanitized = key.trim();
+
+  // Remove surrounding single or double quotes if present
+  if (
+    (sanitized.startsWith('"') && sanitized.endsWith('"')) ||
+    (sanitized.startsWith("'") && sanitized.endsWith("'"))
+  ) {
+    sanitized = sanitized.slice(1, -1);
+  }
+
+  // Convert literal '\n' characters into real newlines
+  sanitized = sanitized.replace(/\\n/g, '\n');
+
+  return sanitized;
 }
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const privateKey = formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
-// Global singleton cache for Next.js hot-reloading
 interface FirebaseAdminGlobal {
   adminApp?: admin.app.App;
   adminDb?: admin.firestore.Firestore;
@@ -38,7 +49,7 @@ function initAdminApp(): admin.app.App {
 
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error(
-      'Firebase Admin SDK credentials missing. Please check your FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY environment variables in .env.local.'
+      `Firebase Admin credentials missing. projectId: ${Boolean(projectId)}, clientEmail: ${Boolean(clientEmail)}, privateKey: ${Boolean(privateKey)}`
     );
   }
 
@@ -54,10 +65,6 @@ function initAdminApp(): admin.app.App {
   return app;
 }
 
-/**
- * Returns the singleton Firestore database instance.
- * settings() is executed strictly once on initial instantiation.
- */
 export function getAdminDb(): admin.firestore.Firestore {
   if (globalForFirebase.__firebaseAdmin?.adminDb) {
     return globalForFirebase.__firebaseAdmin.adminDb;
@@ -65,20 +72,14 @@ export function getAdminDb(): admin.firestore.Firestore {
 
   const app = initAdminApp();
   const db = app.firestore();
-  
-  // Apply settings only once on creation
   db.settings({ ignoreUndefinedProperties: true });
 
   globalForFirebase.__firebaseAdmin!.adminDb = db;
   return db;
 }
 
-/**
- * Check if Firebase Admin environment variables are configured.
- */
 export function isAdminConfigured(): boolean {
   return Boolean(projectId && clientEmail && privateKey);
 }
 
-// Re-export FieldValue for atomicity and transactions
 export const FieldValue = admin.firestore.FieldValue;
