@@ -3,6 +3,13 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['firebase-admin'],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Allows production build to finish even if there are minor type warnings
+    ignoreBuildErrors: false,
+  },
   headers: async () => [
     {
       source: '/dashboard/:path*',

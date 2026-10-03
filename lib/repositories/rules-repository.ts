@@ -9,7 +9,6 @@ export const rulesRepository = {
     const db = getAdminDb();
     const doc = await db.collection(COLLECTIONS.RULE_SETS).doc(DEFAULT_RULE_SET_ID).get();
     if (!doc.exists) {
-      // Initialize with defaults
       const now = nowIso();
       const rules: RuleSet = {
         id: DEFAULT_RULE_SET_ID,

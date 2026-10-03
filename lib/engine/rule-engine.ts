@@ -42,7 +42,10 @@ export function validateRules(rules: RuleSet): string[] {
     );
   }
 
-  if (rules.maxWaitlistSize !== undefined && rules.maxWaitlistSize < 0) {
+  if (
+    typeof rules.maxWaitlistSize === 'number' &&
+    rules.maxWaitlistSize < 0
+  ) {
     errors.push('Max waitlist size cannot be negative.');
   }
 

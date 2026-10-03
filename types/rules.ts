@@ -13,7 +13,7 @@ export interface RuleSet {
   capacityPolicy: CapacityPolicy;
   cancellationPolicy: CancellationPolicy;
   orderingPolicy: OrderingPolicy;
-  maxWaitlistSize?: number;
+  maxWaitlistSize?: number | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -28,7 +28,7 @@ export interface RuleSetInput {
   capacityPolicy?: CapacityPolicy;
   cancellationPolicy?: CancellationPolicy;
   orderingPolicy?: OrderingPolicy;
-  maxWaitlistSize?: number;
+  maxWaitlistSize?: number | null;
 }
 
 export const DEFAULT_RULE_SET: Omit<RuleSet, 'id' | 'createdAt' | 'updatedAt'> = {
